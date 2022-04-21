@@ -1,0 +1,98 @@
+{
+  "smallVenues": [
+    {
+      "id": "rZ7HnEZa7LQ",
+      "name": "Middle East Upstairs"
+    },
+    {
+      "id": "rZ7HnEZa7CT",
+      "name": "Middle East Downstairs"
+    },
+    {
+      "id": "rZ7HnEZ178gb4",
+      "name": "Sonia"
+    },
+    {
+      "id": "Z7r9jZadfX",
+      "name": "City Winery"
+    },
+    {
+      "id": "KovZ917AJnQ",
+      "name": "Crystal Ballroom at Somerville Theater"
+    }
+  ],
+  "venues": [
+    {
+      "id": "ZFr9jZ1eka",
+      "name": "The Sinclair"
+    },
+    {
+      "id": "KovZpapwne",
+      "name": "Brighton Music Hall"
+    },
+    {
+      "id": "ZFr9jZFa61",
+      "name": "Royale Boston"
+    },
+    {
+      "id": "KovZpZA11JtA",
+      "name": "Paradise Rock Club"
+    },
+    {
+      "id": "KovZpZAEA7eA",
+      "name": "House of Blues Boston"
+    },
+    {
+      "id": "Z7r9jZa7rs",
+      "name": "Roadrunner"
+    },
+    {
+      "id": "KovZpZAEAdEA",
+      "name": "Leader Bank Pavillion"
+    },
+    {
+      "id": "KovZpZA1J7JA",
+      "name": "Orpheum Theatre"
+    },
+    {
+      "id": "KovZpZAJd6FA",
+      "name": "Boch Wang Theatre"
+    },
+    {
+      "id": "ZFr9jZdF1e",
+      "name": "Palladium"
+    },
+    {
+      "id": "KovZpZAFd1nA",
+      "name": "Agganis Arena"
+    },
+    {
+      "id": "KovZ917AxdQ",
+      "name": "Big Night Live"
+    },
+    {
+      "id": "KovZpZAEAElA",
+      "name": "Xfinity Center"
+    },
+    {
+      "id": "KovZpa2gne",
+      "name": "TD Garden"
+    },
+    {
+      "id": "Z6r9jZkkee",
+      "name": "Fenway Park"
+    },
+    {
+      "id": "KovZpZA6kvlA",
+      "name": "Gillette Stadium"
+    },
+    {
+      "id": "ZFr9jZeFAF",
+      "name": "Tsongas Center"
+    },
+    {
+      "id": "KovZpZA6taIA",
+      "name": "Mohegan Sun Arena"
+    }
+  ]
+}
