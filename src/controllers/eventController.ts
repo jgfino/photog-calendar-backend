@@ -1,60 +1,35 @@
 import * as ticketmaster from "../api/ticketmaster";
 import { catchAsync } from "../error/catchAsync";
-import CustomEventModel from "../schema/CustomEventSchema";
+import EventModel from "../schema/EventSchema";
 import UserModel from "../schema/UserSchema";
-import { CustomEvent, TicketmasterEvent } from "../types/Event";
-import { DiscordUser, User } from "../types/User";
-import { HydratedDocument } from "mongoose";
+import { Event, TicketmasterEvent } from "../types/Event";
+import { User } from "../types/User";
 
 export const getEvent = catchAsync(async (req, res, next) => {
-  const json: {
-    custom?: boolean;
-    event?: CustomEvent | TicketmasterEvent;
-    photographers?: DiscordUser[];
-  } = {};
-
-  let event: HydratedDocument<CustomEvent> | TicketmasterEvent | null = null;
-  let photogs: HydratedDocument<User>[];
-
-  if (req.query.custom) {
-    json.custom = true;
-    event = await CustomEventModel.findById(req.params.id);
-    photogs = await UserModel.find({ customEvents: event?.id });
-  } else {
-    json.custom = false;
-    event = await ticketmaster.getEventDetails(req.params.id);
-    photogs = await UserModel.find({ tmEvents: event?.id });
-  }
+  const event = await EventModel.findById(req.params.id).populate({
+    path: "photogs",
+    select: "_id name username discriminator avatar",
+  });
 
   if (!event) {
     return res.status(404).send("Event not found");
   }
 
-  // Get data from discord
-
-  // @ts-ignore
-  json.photographers = photogs;
-  json.event = event;
-
-  res.status(200).send(json);
+  res.status(200).json(event);
 });
 
 export const getEvents = catchAsync(async (req, res, next) => {
-  const json: {
-    tmEvents?: TicketmasterEvent[];
-    customEvents?: CustomEvent[];
-    photographers?: DiscordUser[];
-  } = {};
+  // const json: EventWithPhotogs[];
 
-  let tmEvents;
-  if (req.query.month) {
-    tmEvents = await ticketmaster.getEventsAtVenuesByMonth(5);
-    if (!tmEvents) {
-      return res.status(404).send("No events found");
-    }
-  }
+  // let tmEvents;
+  // if (req.query.month) {
+  //   tmEvents = await ticketmaster.getEventsAtVenuesByMonth(5);
+  //   if (!tmEvents) {
+  //     return res.status(404).send("No events found");
+  //   }
+  // }
 
-  json.tmEvents = tmEvents;
+  // json.tmEvents = tmEvents;
 
-  res.status(200).send(json);
+  res.status(200).send();
 });

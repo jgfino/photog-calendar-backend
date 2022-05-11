@@ -1,6 +1,6 @@
 import axios from "axios";
 import { TicketmasterEvent } from "../types/Event";
-import { TicketmasterVenue } from "../types/Venue";
+import { Venue } from "../types/Venue";
 import venues from "./venues.json";
 
 const base = "https://app.ticketmaster.com/discovery/v2";
@@ -12,15 +12,13 @@ const allVenues = [...venues.smallVenues, ...venues.venues];
  * @param id The venue ID to get details for
  * @returns Details of the given venue
  */
-export const getVenueDetails = async (
-  id: string
-): Promise<TicketmasterVenue> => {
+export const getVenueDetails = async (id: string): Promise<Venue> => {
   const res = await axios.get(`${base}/venues/${id}`, {
     params: { apikey: apikey() },
   });
   const data = res.data;
 
-  const venue: TicketmasterVenue = {
+  const venue: Venue = {
     id: data.id,
     name: allVenues.find((v) => v.id === data.id)!.name,
     city: data.city.name,
@@ -42,7 +40,8 @@ const extractDetails = (data: any): TicketmasterEvent | null => {
     return null;
   }
   const event: TicketmasterEvent = {
-    id: data.id,
+    type: "TICKETMASTER",
+    tickemasterID: data.id,
     name: data.name,
     photo: data.images[1]?.url,
     venueId: data._embedded.venues[0].id,

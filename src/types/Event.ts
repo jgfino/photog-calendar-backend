@@ -1,17 +1,20 @@
-import { Types } from "mongoose";
-
-export interface TicketmasterEvent {
-  id: string;
+/**
+ * Basic information for an event stored in the database
+ */
+export interface Event {
   name: string;
-  photo?: string;
-  venueId: string;
   venueName: string;
   date: Date;
+  type: "CUSTOM" | "TICKETMASTER";
+  venueId?: string;
+  notes?: string;
 }
 
-export interface CustomEvent {
-  _id: Types.ObjectId;
-  name: string;
-  venueName: string;
-  date: Date;
+/**
+ * Additional information for an event retrieved from the Ticketmaster API
+ */
+export interface TicketmasterEvent extends Event {
+  tickemasterID: string;
+  photo?: string;
+  venueId: string;
 }

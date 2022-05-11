@@ -1,0 +1,95 @@
+openapi: 3.0.0
+info:
+  description: Backend API Docs for Photo Calendar
+  version: "1.0"
+  title: Photog Calendar API
+security:
+  - BearerAuth: []
+servers:
+  - url: localhost:3001/api
+paths:
+  /auth/login:
+    post:
+      security: []
+      summary: Login a user
+      description: Get an access/refresh token for a user using the code obtained from the OAuth2 login with Discord
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+              properties:
+                code:
+                  type: string
+                  description: The access code obtained from Discord OAuth2
+                  example: nRgVRrvUMp3Duo44eN5VYzz9u6cOLd
+      responses:
+        200:
+          $ref: "#/components/responses/TokenResponse"
+  /auth/token:
+    post:
+      security: []
+      summary: Refresh a user's tokens
+      description: Refresh a user's tokens using their refresh token
+      requestBody:
+        required: true
+        content: 
+          application/json:
+           schema:
+            type: object
+            required:
+              - refreshToken
+            properties:              
+              refreshToken:
+                type: string
+                description: The user's refresh token, cannot be expired
+                example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySUQiOiI2MjczNWQwZmE1MjFiYmIxOGQwMTY2MDQiLCJpYXQiOjE2NTIyMzI0MDksImV4cCI6MTY1MjIzMzAwOX0.UT2ITUXkanWvhjBXLRdCbrKvU31mXEp2dwus6eCcJhk
+      responses:
+        200:
+          description: Access information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponseTokens"
+
+components:
+  schemas:
+    TokenResponseTokens:
+        description: User access information
+        type: object
+        required:
+          - id
+          - accessToken
+          - refreshToken
+        properties:
+          id:
+            type: string
+            description: The logged in user's ID
+            example: 62735d0fa521bbb18d016604
+          accessToken:
+            type: string
+            description: The user's JWT access token. Expires in 10 minutes
+            example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySUQiOiI2MjczNWQwZmE1MjFiYmIxOGQwMTY2MDQiLCJpYXQiOjE2NTIyMzI0MDksImV4cCI6MTY1MjIzMzAwOX0.UT2ITUXkanWvhjBXLRdCbrKvU31mXEp2dwus6eCcJhk
+          refreshToken:
+            type: string
+            description: The user's JWT refresh token. Expires in 7 days, refreshed every time the access token is refreshed
+            example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySUQiOiI2MjczNWQwZmE1MjFiYmIxOGQwMTY2MDQiLCJpYXQiOjE2NTIyMzI0MDksImV4cCI6MTY1MjIzMzAwOX0.UT2ITUXkanWvhjBXLRdCbrKvU31mXEp2dwus6eCcJhk
+  responses:      
+      TokenResponse:
+        description: Access information
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - tokens
+                - newUser
+              properties:
+                tokens:
+                  $ref: "#/components/schemas/TokenResponseTokens"                  
+                newUser:
+                  description: "Whether this login triggered creating a new user"
+                  type: boolean

@@ -5,35 +5,100 @@ interface UserModel extends Model<User> {}
 
 const UserSchema = new Schema<User, UserModel, {}, {}>(
   {
-    id: {
+    method: {
+      type: String,
+      required: true,
+      enum: ["DISCORD"],
+      default: "DISCORD",
+    },
+    discordID: {
       type: String,
       unique: true,
       required: true,
+    },
+    username: {
+      type: String,
+      required: true,
+      maxlength: 20,
+    },
+    discriminator: {
+      type: String,
+      required: true,
+      maxlength: 4,
+    },
+    avatar: {
+      type: String,
+      maxlength: 100,
     },
     name: {
       type: String,
       required: true,
       maxlength: 100,
+      default: function () {
+        return this.username;
+      },
     },
-    tmEvents: [
+    bio: {
+      type: String,
+      maxlength: 500,
+    },
+    insta: {
+      type: String,
+      maxlength: 50,
+    },
+    website: {
+      type: String,
+      maxlength: 100,
+    },
+    events: [
       {
-        type: String,
+        type: {
+          id: {
+            type: Schema.Types.ObjectId,
+            ref: "Event",
+            required: true,
+          },
+          status: {
+            type: String,
+            required: true,
+            enum: ["PLANNED", "REQUESTED", "APPROVED", "DENIED"],
+          },
+          notes: {
+            type: String,
+            maxlength: 500,
+          },
+        },
+        _id: false,
       },
     ],
-    customEvents: [
+    discordAccessToken: {
+      type: String,
+      maxlength: 100,
+    },
+    discordAccessTokenExpiry: {
+      type: Date,
+    },
+    discordRefreshToken: {
+      type: String,
+      maxlength: 100,
+    },
+    refreshTokens: [
       {
-        type: Schema.Types.ObjectId,
-        ref: "CustomEvent",
+        type: String,
+        maxlength: 500,
       },
     ],
   },
   {
-    _id: false,
     toJSON: {
+      virtuals: true,
       transform: (_, ret) => {
+        ret.id = ret._id;
+        delete ret._id;
         delete ret.__v;
       },
     },
+    toObject: { virtuals: true },
   }
 );
 

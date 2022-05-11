@@ -1,4 +1,4 @@
 import axios from "axios";
-import { DiscordUser } from "../types/User";
+import { User } from "../types/User";
 
 const base = "https://discord.com/api";
