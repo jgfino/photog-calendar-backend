@@ -1,11 +1,18 @@
 import { Types } from "mongoose";
 
+export enum EventStatus {
+  PLANNED = "PLANNED",
+  REQUESTED = "REQUESTED",
+  APPROVED = "APPROVED",
+  DENIED = "DENIED",
+}
+
 /***
  * An event planned by a user and whether it has been requested
  */
 interface PlannedEvent {
   id: Types.ObjectId;
-  status: "PLANNED" | "REQUESTED" | "APPROVED" | "DENIED";
+  status: EventStatus;
   notes: string;
 }
 

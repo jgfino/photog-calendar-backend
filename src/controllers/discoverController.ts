@@ -9,7 +9,6 @@ export const getEvents = catchAsync(async (req, res, next) => {
 
 // Specific tm event
 export const getEvent = catchAsync(async (req, res, next) => {
-  console.log(req.query);
-  const event = await ticketmaster.getEventDetails(req.params.id);
+  const event = await ticketmaster.getTicketmasterEvent(req.params.id);
   res.status(200).send(event);
 });

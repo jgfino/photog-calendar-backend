@@ -1,6 +1,10 @@
 import { catchAsync } from "../error/catchAsync";
 import EventModel from "../schema/EventSchema";
+import { EventType } from "../types/Event";
 
+/**
+ * Get a specific event from the database
+ */
 export const getEvent = catchAsync(async (req, res, next) => {
   const event = await EventModel.findById(req.params.id).populate({
     path: "photogs",
@@ -14,11 +18,15 @@ export const getEvent = catchAsync(async (req, res, next) => {
   res.status(200).json(event);
 });
 
+/**
+ * Create an event, either a custom event or a tm event
+ */
 export const createEvent = catchAsync(async (req, res, next) => {
   const { name, venueName, date, type, venueId, notes, ticketmasterID, photo } =
     req.body;
 
-  if (type == "CUSTOM") {
+  if (type == EventType.CUSTOM) {
+    // See if the event already exists
     const exists = await EventModel.find({
       $and: [
         { date: date },
@@ -42,7 +50,7 @@ export const createEvent = catchAsync(async (req, res, next) => {
     res
       .status(200)
       .send({ message: "Event created successfully", event: newEvent });
-  } else if (type == "TICKETMASTER") {
+  } else if (type == EventType.TICKETMASTER) {
     const exists = await EventModel.find({ tickemasterID: ticketmasterID });
     if (exists) {
       return res

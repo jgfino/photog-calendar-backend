@@ -79,3 +79,5 @@ cron.schedule("0 * * * *", async () => {
     console.log("There was an error updating user discord data");
   }
 });
+
+// Refresh venue data once a day TODO
