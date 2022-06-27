@@ -1,5 +1,5 @@
 import { Model, Schema, model } from "mongoose";
-import { User } from "../types/User";
+import { EventStatus, User } from "../types/User";
 
 interface UserModel extends Model<User> {}
 
@@ -61,7 +61,7 @@ const UserSchema = new Schema<User, UserModel, {}, {}>(
           status: {
             type: String,
             required: true,
-            enum: ["PLANNED", "REQUESTED", "APPROVED", "DENIED"],
+            enum: EventStatus,
           },
           notes: {
             type: String,

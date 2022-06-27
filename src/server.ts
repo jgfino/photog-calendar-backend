@@ -70,7 +70,7 @@ export const jwtAuth = passport.authenticate("jwt", { session: false });
 app.use("/api/auth", auth);
 app.use("/api/events", jwtAuth, events);
 app.use("/api/profile", jwtAuth, profile);
-app.use("/api/discover", jwtAuth, discover);
+app.use("/api/discover", discover);
 
 app.use("/", jwtAuth, async (req, res, next) => {
   res.send(`Hello, ${req.user?.userID}`);

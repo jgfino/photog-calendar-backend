@@ -1,0 +1,66 @@
+import { Model, Schema, model } from "mongoose";
+import { TicketmasterVenue, Venue } from "../types/Venue";
+
+interface VenueModel extends Model<Venue & TicketmasterVenue> {}
+
+export enum VenueType {
+  CUSTOM = "CUSTOM",
+  TICKETMASTER = "TICKETMASTER",
+}
+
+const VenueSchema = new Schema<Venue & TicketmasterVenue, VenueModel, {}, {}>(
+  {
+    name: {
+      type: String,
+      required: true,
+      maxlength: 200,
+    },
+    city: {
+      type: String,
+      required: true,
+      maxlength: 200,
+    },
+    state: {
+      type: String,
+      required: true,
+      maxlength: 200,
+    },
+    address: {
+      type: String,
+      required: true,
+      maxlength: 200,
+    },
+    postalCode: {
+      type: String,
+      required: true,
+      maxlength: 200,
+    },
+    type: {
+      type: String,
+      enum: VenueType,
+      required: true,
+    },
+    ticketmasterID: {
+      type: String,
+      maxlength: 100,
+    },
+  },
+  {
+    toJSON: {
+      virtuals: true,
+      transform: (_, ret) => {
+        ret.id = ret._id;
+        delete ret._id;
+        delete ret.__v;
+      },
+    },
+    toObject: { virtuals: true },
+  }
+);
+
+const VenueModel = model<Venue & TicketmasterVenue, VenueModel>(
+  "Venue",
+  VenueSchema
+);
+
+export default VenueModel;

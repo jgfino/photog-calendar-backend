@@ -1,5 +1,5 @@
 import { Model, Schema, model } from "mongoose";
-import { Event, TicketmasterEvent } from "../types/Event";
+import { Event, EventType, TicketmasterEvent } from "../types/Event";
 
 interface EventModel extends Model<Event & TicketmasterEvent> {}
 
@@ -10,10 +10,10 @@ const EventSchema = new Schema<Event & TicketmasterEvent, EventModel, {}, {}>(
       required: true,
       maxlength: 200,
     },
-    venueName: {
-      type: String,
+    venueID: {
+      type: Schema.Types.ObjectId,
       required: true,
-      maxlength: 200,
+      ref: "Venue",
     },
     date: {
       type: Date,
@@ -21,14 +21,14 @@ const EventSchema = new Schema<Event & TicketmasterEvent, EventModel, {}, {}>(
     },
     type: {
       type: String,
-      enum: ["CUSTOM", "TICKETMASTER"],
+      enum: EventType,
       required: true,
     },
     notes: {
       type: String,
       maxlength: 500,
     },
-    tickemasterID: {
+    ticketmasterID: {
       type: String,
       maxlength: 100,
     },
@@ -36,9 +36,13 @@ const EventSchema = new Schema<Event & TicketmasterEvent, EventModel, {}, {}>(
       type: String,
       maxlength: 1000,
     },
-    venueId: {
-      type: String,
+    lineup: {
+      type: [String],
       maxlength: 100,
+      required: true,
+      default: function () {
+        return [this.name];
+      },
     },
   },
   {
