@@ -1,14 +1,7 @@
 import axios from "axios";
 import { catchAsync } from "../error/catchAsync";
 import UserModel from "../schema/UserSchema";
-import crypto from "crypto";
 import jwt, { TokenExpiredError } from "jsonwebtoken";
-import bcrypt from "bcrypt";
-
-// Temporary, will eventually be handled on the frontend
-export const getCode = catchAsync(async (req, res, next) => {
-  res.status(200).send(req.query.code);
-});
 
 /**
  * Login or create a new user based on the access code received
@@ -16,69 +9,99 @@ export const getCode = catchAsync(async (req, res, next) => {
 export const loginOrCreate = catchAsync(async (req, res, next) => {
   const code = req.body.code as string;
 
+  console.log(code);
+
   if (code) {
-    const axiosResponse = await axios.post(
-      "https://discord.com/api/oauth2/token",
-      new URLSearchParams({
-        client_id: process.env.DISCORD_CLIENT_ID!,
-        client_secret: process.env.DISCORD_CLIENT_SECRET!,
-        code,
-        grant_type: "authorization_code",
-        redirect_uri: process.env.DISCORD_OAUTH_REDIRECT!,
-        scope: "identify",
-      }),
-      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
-    );
+    try {
+      const axiosResponse = await axios.post(
+        "https://discord.com/api/oauth2/token",
+        new URLSearchParams({
+          client_id: process.env.DISCORD_CLIENT_ID!,
+          client_secret: process.env.DISCORD_CLIENT_SECRET!,
+          code,
+          grant_type: "authorization_code",
+          redirect_uri: process.env.DISCORD_OAUTH_REDIRECT!,
+          scope: "identify",
+        }),
+        { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+      );
 
-    const {
-      access_token: accessToken,
-      refresh_token: refreshToken,
-      expires_in: expiresIn,
-    } = axiosResponse.data;
+      const {
+        access_token: accessToken,
+        refresh_token: refreshToken,
+        expires_in: expiresIn,
+      } = axiosResponse.data;
 
-    const discordUser = await axios.get("https://discord.com/api/users/@me", {
-      headers: {
-        authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    const { id, username, discriminator, avatar } = discordUser.data;
-
-    let user = await UserModel.findOne({ discordID: id });
-    let newUser = false;
-
-    const expires = new Date(
-      new Date().getTime() + Number(expiresIn) * 1000 - 10000
-    );
-
-    if (user) {
-      // Update user
-      user.username = username;
-      user.discriminator = discriminator;
-      user.avatar = avatar;
-      user.discordAccessToken = accessToken;
-      user.discordRefreshToken = refreshToken;
-      user.discordAccessTokenExpiry = expires;
-      await user.save();
-    } else {
-      // Create new user
-      newUser = true;
-      user = await UserModel.create({
-        discordID: id,
-        name: username,
-        username,
-        discriminator,
-        avatar,
-        accessToken,
-        refreshToken,
-        accessTokenExpiry: expires,
+      const discordUser = await axios.get("https://discord.com/api/users/@me", {
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+        },
       });
-    }
 
-    const tokens = await generateTokens(user.id);
-    res.status(200).send({ tokens, newUser });
+      const { id, username, discriminator, avatar } = discordUser.data;
+
+      let user = await UserModel.findOne({ discordID: id });
+      let newUser = false;
+
+      const expires = new Date(
+        new Date().getTime() + Number(expiresIn) * 1000 - 10000
+      );
+
+      if (user) {
+        // Update user
+        user.username = username;
+        user.discriminator = discriminator;
+        user.avatar = avatar;
+        user.discordAccessToken = accessToken;
+        user.discordRefreshToken = refreshToken;
+        user.discordAccessTokenExpiry = expires;
+        await user.save();
+      } else {
+        // Create new user
+        newUser = true;
+        user = await UserModel.create({
+          discordID: id,
+          name: username,
+          username,
+          discriminator,
+          avatar,
+          accessToken,
+          refreshToken,
+          accessTokenExpiry: expires,
+        });
+      }
+
+      const tokens = await generateTokens(user.id);
+      res.status(200).send({ tokens, newUser });
+    } catch (e) {
+      console.log(`There was an error logging in/signing up: ${e}`);
+    }
   } else {
     res.status(400).send({ message: "No authorization code provided" });
+  }
+});
+
+export const logOut = catchAsync(async (req, res, next) => {
+  try {
+    const token = req.body.refreshToken;
+
+    if (!token) {
+      return res.status(400).send("Invalid token");
+    }
+
+    const userID = (jwt.decode(token) as jwt.JwtPayload).userID;
+
+    // Remove the refresh token associated with this session
+    await UserModel.updateOne(
+      { _id: userID },
+      { $pullAll: { refreshTokens: [token] } }
+    );
+    res.status(200).send({ message: "User logged out successfully" });
+  } catch (e) {
+    console.log(e);
+    res
+      .status(500)
+      .send({ message: "There was an error logging out. Please try again" });
   }
 });
 
@@ -125,10 +148,7 @@ const refreshTokens = async (refreshToken: string) => {
 
   // Make sure this is a valid refresh token we've seen before and remove it since it has been used
   if (user.refreshTokens.includes(refreshToken)) {
-    user.refreshTokens = user.refreshTokens.filter(
-      (token) => token != refreshToken
-    );
-    await user.save();
+    await user.updateOne({ $pullAll: { refreshTokens: [refreshToken] } });
     return generateTokens(userID);
   } else {
     throw new Error("Invalid refresh token");
@@ -153,12 +173,10 @@ const generateTokens = async (userID: string) => {
   });
 
   const accessToken = jwt.sign(body, process.env.JWT_SECRET!, {
-    expiresIn: "10 minutes",
+    expiresIn: "1 minute",
   });
 
-  user.refreshTokens.push(refreshToken);
-
-  await user.save();
+  await user.updateOne({ $addToSet: { refreshTokens: refreshToken } });
 
   return {
     id: userID,

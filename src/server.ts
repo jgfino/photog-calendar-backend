@@ -4,19 +4,22 @@ import EventModel from "./schema/EventSchema";
 import UserModel from "./schema/UserSchema";
 import events from "./routes/eventRoutes";
 import auth from "./routes/authRoutes";
+import discover from "./routes/discoverRoutes";
+import profile from "./routes/profileRoutes";
 import mongoose from "mongoose";
 import passport from "passport";
 import { Strategy as JWTStrategy, StrategyOptions } from "passport-jwt";
 import { ExtractJwt } from "passport-jwt";
 import { User as AppUser } from "./types/User";
 import "./cron";
+import cors from "cors";
 
 dotenv.config();
 
 declare global {
   namespace Express {
-    interface User extends AppUser {
-      id: string;
+    interface User {
+      userID: string;
     }
   }
 }
@@ -31,14 +34,11 @@ passport.use(
   new JWTStrategy(jwtOpts, async (payload, done) => {
     try {
       const user: AppUser & { id: string; _id?: string } =
-        await UserModel.findById(payload.userID).lean();
+        await UserModel.findById(payload.userID, "_id").lean();
       if (!user) {
         throw new Error("No user found with this ID");
       }
-      user.id = user?._id!.toString();
-      delete user._id;
-      console.log(user);
-      return done(null, user);
+      return done(null, { userID: payload.userID });
     } catch (err) {
       return done(err);
     }
@@ -59,6 +59,8 @@ db.mongoose
   .then(() => console.log("Connected to MongoDB"))
   .catch((e) => console.log("Cannot connect to MongoDB: " + e));
 
+app.use(cors());
+
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(passport.initialize());
@@ -67,9 +69,11 @@ export const jwtAuth = passport.authenticate("jwt", { session: false });
 
 app.use("/api/auth", auth);
 app.use("/api/events", jwtAuth, events);
+app.use("/api/profile", jwtAuth, profile);
+app.use("/api/discover", jwtAuth, discover);
 
 app.use("/", jwtAuth, async (req, res, next) => {
-  res.send(`Hello, ${req.user?.name}`);
+  res.send(`Hello, ${req.user?.userID}`);
 });
 
 // Route not found

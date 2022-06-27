@@ -21,9 +21,9 @@ export interface User {
   events: Array<PlannedEvent>;
   method: "DISCORD";
 
-  bio: string;
-  insta: string;
-  website: string;
+  bio?: string;
+  insta?: string;
+  website?: string;
 
   discordID: string;
   username: string;
